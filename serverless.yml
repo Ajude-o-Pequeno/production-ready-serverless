@@ -1,0 +1,33 @@
+service: ${file(package.json):name}
+
+plugins:
+  - serverless-deployment-bucket
+  - serverless-dotenv-plugin
+  - serverless-plugin-typescript
+
+custom:
+  STAGE: ${opt:stage, 'development'}
+  REGION: ${opt:region, 'eu-west-1'}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${self:custom.REGION}
+  stage: ${self:custom.STAGE}
+  memorySize: 128
+  timeout: 30
+  logRetentionInDays: 7
+  versionFunctions: false
+  deploymentBucket:
+    name: serverless-deployment-bucket-${self:service} # <-- this will need to be globally unique
+  environment:
+    STAGE: ${self:custom.STAGE}
+
+functions:
+  HelloWorld:
+    handler: src/functions/HelloWorld.handler
+    events:
+      - http:
+          method: get
+          path: /hello
+          cors: true
